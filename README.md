@@ -7,6 +7,6 @@ To be added to Unity projects using Meta's OVRPlugin. See [https://developer.ocu
 
 Usage:
 1. Download and import the .unitypackage
-2. Drag the MovementLogger prefab into a scene already cointaining a OVRCameraRig.
+2. Drag the MovementLogger prefab into a scene already cointaining a OVRCameraRig, and OVRHand/OVRController prefabs.
    - This should automatically populate the necessary fields of the QuestLogger: OVRManager, left- and right-hand,  and head attachments. 
 
