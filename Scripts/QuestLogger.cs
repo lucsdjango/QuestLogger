@@ -119,7 +119,7 @@ public class QuestLogger : MonoBehaviour
                     float d = headCam.transform.InverseTransformPoint(leftHand.transform.position).magnitude;
                     logger.UpdateEntry("LHandConf", leftHand.HandConfidence.ToString());
                     logger.UpdateEntry("LeftHand",
-                        d.ToString("F4") + " " +
+                        //d.ToString("F4") + " " +
                         headCam.transform.InverseTransformPoint(leftHand.transform.position).ToString("F4") + " " +
                         leftHand.transform.rotation.ToString("F4") + " " + 
                         leftHand.transform.eulerAngles.ToString("F4") + " " +  
@@ -144,7 +144,7 @@ public class QuestLogger : MonoBehaviour
                         logger.UpdateEntry("L"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandLeft,bone.Id), bone.Transform.localRotation.ToString("F4") + " " + bone.Transform.localEulerAngles.ToString("F4") + " " + bone.Transform.position.ToString("F4"));
                     }
 
-                    logger.AddEntry("LHandScale", leftHand.HandScale.ToString("F4"));
+                    logger.UpdateEntry("LHandScale", leftHand.HandScale.ToString("F4"));
 
 
                 } else 
@@ -156,14 +156,14 @@ public class QuestLogger : MonoBehaviour
                     logger.UpdateEntry("RHandConf",rightHand.HandConfidence.ToString());
                     float d = headCam.transform.InverseTransformPoint(leftHand.transform.position).magnitude;
                     logger.UpdateEntry("RightHand",
-                        d.ToString("F4") + " " +
+                        //d.ToString("F4") + " " +
                         headCam.transform.InverseTransformPoint(rightHand.transform.position).ToString("F4") + " " +
                         rightHand.transform.rotation.ToString("F4") + " " + 
                         rightHand.transform.eulerAngles.ToString("F4") + " " +  
                         rightHand.transform.position.ToString("F4")
                     );
 
-                    if (rightHand.HandConfidence == OVRHand.TrackingConfidence.High)
+                    if(true) // (rightHand.HandConfidence == OVRHand.TrackingConfidence.High)
                     {
                         foreach (OVRHand.HandFinger finger in fingers)
                         {
@@ -180,7 +180,7 @@ public class QuestLogger : MonoBehaviour
                         logger.UpdateEntry("R"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandRight,bone.Id), bone.Transform.localRotation.ToString("F4") + " " +  bone.Transform.localEulerAngles.ToString("F4") + " " + bone.Transform.position.ToString("F4"));
                     }
 
-                    logger.AddEntry("RHandScale", rightHand.HandScale.ToString("F4"));
+                    logger.UpdateEntry("RHandScale", rightHand.HandScale.ToString("F4"));
 
                 } else {
 
