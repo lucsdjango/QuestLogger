@@ -46,7 +46,7 @@ public class Logger : MonoBehaviour
     }
 
 
-    public void StartLogging(string id)
+    public void StartLogging(string id, float t)
     {
 
         print("started logging");
@@ -73,9 +73,10 @@ public class Logger : MonoBehaviour
         LogLabels();
 
         logStartTime = Time.time;
-        logUnpauseTime = Time.time;
+        logUnpauseTime = t;
 
-        
+        writer.WriteLine(t.ToString());
+
 
     }
 
@@ -140,7 +141,7 @@ public class Logger : MonoBehaviour
        
     }
 
-    void FixedUpdate()
+    void LateUpdate()
     {
 
         if (logging){
