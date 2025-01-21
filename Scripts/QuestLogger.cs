@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -46,6 +47,11 @@ public class QuestLogger : MonoBehaviour
     private int logFiles = 0;
 
     public AudioSource startSound, stopSound;
+	
+	private Dictionary<OVRBone, string> leftBones;
+    private Dictionary<OVRBone, string> rightBones;
+
+    private const string dps = "F4";
 
     void Awake()
     {
@@ -55,6 +61,8 @@ public class QuestLogger : MonoBehaviour
         left = GameObject.Find("LeftHandAnchor").transform;
         right = GameObject.Find("RightHandAnchor").transform;
         headCam = GameObject.FindWithTag("MainCamera").GetComponent<Camera>();
+
+        OVRPlugin.systemDisplayFrequency = 120.0f;
 
     }
 
@@ -129,32 +137,31 @@ public class QuestLogger : MonoBehaviour
 
                 if (leftHand.IsTracked)
                 {
-                    //float d = headCam.transform.InverseTransformPoint(leftHand.transform.position).magnitude;
+                    
                     logger.UpdateEntry("LHandConf", leftHand.HandConfidence.ToString());
                     logger.UpdateEntry("LeftHand",
-                        //d.ToString("F4") + " " +
                         headCam.transform.InverseTransformPoint(leftHand.transform.position).ToString("F4") + " " +
                         leftHand.transform.rotation.ToString("F4") + " " + 
                         leftHand.transform.eulerAngles.ToString("F4") + " " +  
                         leftHand.transform.position.ToString("F4")
                     );
 
-                    if(true) //leftHand.HandConfidence == OVRHand.TrackingConfidence.High) 
-                    { 
-                        foreach (OVRHand.HandFinger finger in fingers)
-                        {
-                            if (finger == OVRHand.HandFinger.Max)
-                                continue;
-                            string fingerName = finger.ToString().Replace("HandFinger.", "");
-                            //Debug.Log(finger);
-                            
-                            logger.UpdateEntry("L" + fingerName + "Pinch", leftHand.GetFingerPinchStrength(finger).ToString("F4"));
-                        }
-                    }
+                    
+					foreach (OVRHand.HandFinger finger in fingers)
+					{
+						if (finger == OVRHand.HandFinger.Max)
+							continue;
+						string fingerName = finger.ToString().Replace("HandFinger.", "");
+						//Debug.Log(finger);
+						
+						logger.UpdateEntry("L" + fingerName + "Pinch", leftHand.GetFingerPinchStrength(finger).ToString("F4"));
+					}
+                    
 
-                    foreach (OVRBone bone in leftSkeleton.Bones)
+					foreach (KeyValuePair<OVRBone, string> labeledBone in leftBones)
                     {
-                        logger.UpdateEntry("L"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandLeft,bone.Id), bone.Transform.localRotation.ToString("F4") + " " + bone.Transform.localEulerAngles.ToString("F4") + " " + bone.Transform.position.ToString("F4"));
+                        OVRBone bone = labeledBone.Key;
+                        logger.UpdateEntry(labeledBone.Value, bone.Transform.localRotation.ToString(dps) + " " + bone.Transform.localEulerAngles.ToString(dps) + " " + bone.Transform.position.ToString(dps));
                     }
 
                     logger.UpdateEntry("LHandScale", leftHand.HandScale.ToString("F4"));
@@ -176,21 +183,20 @@ public class QuestLogger : MonoBehaviour
                         rightHand.transform.position.ToString("F4")
                     );
 
-                    if(true) // (rightHand.HandConfidence == OVRHand.TrackingConfidence.High)
+                    foreach (OVRHand.HandFinger finger in fingers)
                     {
-                        foreach (OVRHand.HandFinger finger in fingers)
-                        {
-                            if (finger == OVRHand.HandFinger.Max)
-                                continue;
-                            string fingerName = finger.ToString().Replace("HandFinger.", "");
-                            //print(finger);
-                            logger.UpdateEntry("R" + fingerName + "Pinch", rightHand.GetFingerPinchStrength(finger).ToString("F4"));
-                        }
-                    }
+						if (finger == OVRHand.HandFinger.Max)
+							continue;
+						string fingerName = finger.ToString().Replace("HandFinger.", "");
+						//print(finger);
+						logger.UpdateEntry("R" + fingerName + "Pinch", rightHand.GetFingerPinchStrength(finger).ToString("F4"));
+					}
+				
 
-                    foreach (OVRBone bone in rightSkeleton.Bones){
-                        
-                        logger.UpdateEntry("R"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandRight,bone.Id), bone.Transform.localRotation.ToString("F4") + " " +  bone.Transform.localEulerAngles.ToString("F4") + " " + bone.Transform.position.ToString("F4"));
+                    foreach (KeyValuePair<OVRBone, string> labeledBone in rightBones)
+                    {
+                        OVRBone bone = labeledBone.Key;
+                        logger.UpdateEntry(labeledBone.Value, bone.Transform.localRotation.ToString(dps) + " " + bone.Transform.localEulerAngles.ToString(dps) + " " + bone.Transform.position.ToString(dps));
                     }
 
                     logger.UpdateEntry("RHandScale", rightHand.HandScale.ToString("F4"));
@@ -258,19 +264,24 @@ public class QuestLogger : MonoBehaviour
 
     private void StartLogging(float t){
 
-
+		
         logger = Instantiate<Logger>(loggerPreFab);
 
         logger.AddEntry("HMD");
         logger.AddEntry("LeftHand");
         logger.AddEntry("RightHand");
         logger.AddEntry("HandDist");
+		
+		leftBones = new Dictionary<OVRBone, string>();
+		rightBones = new Dictionary<OVRBone, string>();
+		
 
-        if (logFingers) {
+        if (logFingers)
+        {
 
             logger.AddEntry("LHandConf");
             logger.AddEntry("RHandConf");
-            
+
 
             var fingers = Enum.GetValues(typeof(OVRHand.HandFinger));
 
@@ -282,18 +293,33 @@ public class QuestLogger : MonoBehaviour
                 logger.AddEntry("L" + fingerName + "Pinch");
                 logger.AddEntry("R" + fingerName + "Pinch");
             }
-           
+
 
             foreach (OVRBone bone in leftSkeleton.Bones)
             {
+                string boneLabel = "L" + OVRSkeleton.BoneLabelFromBoneId(leftSkeleton.GetSkeletonType(), bone.Id);
+                if (boneLabel != null && !boneLabel.Contains("Unknown"))
+                {
+                    logger.AddEntry(boneLabel);
+                    leftBones.Add(bone, boneLabel);
+                    print(boneLabel);
+                }
 
-                logger.AddEntry("L"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandLeft,bone.Id));
+
             }
 
-            foreach (OVRBone bone in rightSkeleton.Bones){
+            foreach (OVRBone bone in rightSkeleton.Bones)
+            {
 
-                logger.AddEntry("R"+OVRSkeleton.BoneLabelFromBoneId( OVRSkeleton.SkeletonType.HandRight,bone.Id));
-                    
+                string boneLabel = "R" + OVRSkeleton.BoneLabelFromBoneId(rightSkeleton.GetSkeletonType(), bone.Id);
+                if (boneLabel != null && !boneLabel.Contains("Unknown"))
+                {
+                    logger.AddEntry(boneLabel);
+                    rightBones.Add(bone, boneLabel);
+                    print(boneLabel);
+
+                }
+
             }
 
             logger.AddEntry("LHandScale");
@@ -319,12 +345,14 @@ public class QuestLogger : MonoBehaviour
 
     private void BlankIt()
     {
-        leftHand.GetComponent<OVRMeshRenderer>().enabled = false;
+        /* leftHand.GetComponent<OVRMeshRenderer>().enabled = false;
         rightHand.GetComponent<OVRMeshRenderer>().enabled = false;
         leftHand.GetComponent<SkinnedMeshRenderer>().enabled = false;
-        rightHand.GetComponent<SkinnedMeshRenderer>().enabled = false;
+        rightHand.GetComponent<SkinnedMeshRenderer>().enabled = false; 
+		ovrManager.GetComponent<OVRPassthroughLayer>().overlayType = OVROverlay.OverlayType.Overlay;
+		*/
         startSound.Play();
-        ovrManager.GetComponent<OVRPassthroughLayer>().overlayType = OVROverlay.OverlayType.Overlay;
+        
 
         //ovrManager.isInsightPassthroughEnabled = true;
         //headCam.clearFlags = CameraClearFlags.SolidColor;
@@ -332,12 +360,13 @@ public class QuestLogger : MonoBehaviour
     }
     private void UnBlankIt()
     {
-        leftHand.GetComponent<OVRMeshRenderer>().enabled = true;
+/*         leftHand.GetComponent<OVRMeshRenderer>().enabled = true;
         rightHand.GetComponent<OVRMeshRenderer>().enabled = true;
         leftHand.GetComponent<SkinnedMeshRenderer>().enabled = true;
         rightHand.GetComponent<SkinnedMeshRenderer>().enabled = true;
+		ovrManager.GetComponent<OVRPassthroughLayer>().overlayType = OVROverlay.OverlayType.Underlay; */
         stopSound.Play();
-        ovrManager.GetComponent<OVRPassthroughLayer>().overlayType = OVROverlay.OverlayType.Underlay;
+        
 
         //ovrManager.isInsightPassthroughEnabled = false;
         //headCam.clearFlags = CameraClearFlags.SolidColor;
