@@ -10,4 +10,4 @@ Usage:
 2. Drag the MovementLogger prefab into a scene already cointaining a OVRCameraRig, and OVRHand/OVRController prefabs.
    - This should automatically populate the necessary fields of the QuestLogger: OVRManager, left- and right-hand,  and head attachments.
 3. Build and run on headset.
-4. Start logging by pressing the A button of a controller or touching the right hand thumb with indexfinger tip.
+4. The application should start logging to a local text file after 2 sec. (Invoked in QuestLogger.Start()) 
