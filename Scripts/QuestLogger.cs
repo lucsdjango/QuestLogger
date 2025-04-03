@@ -110,7 +110,7 @@ public class QuestLogger : MonoBehaviour
 
         //ovrManager.isInsightPassthroughEnabled = false;
 
-        //Invoke("StartLogging", 2f);
+        Invoke("StartLogging", 2f);
 
     }
 
